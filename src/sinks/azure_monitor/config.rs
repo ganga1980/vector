@@ -189,6 +189,14 @@ pub(super) fn default_host() -> String {
     "global.handler.control.monitor.azure.com".into()
 }
 
+pub(super) fn default_resource_id() -> Option<String> {
+    let resource_id: Option<String> = match env::var("AKS_RESOURCE_ID") {
+        Ok(value) => Some(value),
+        Err(_) => None,
+    };
+    resource_id
+}
+
 /// Configuration for the `azure_monitor` sink.
 #[configurable_component(sink(
     "azure_monitor",
@@ -206,6 +214,7 @@ pub struct AzureMonitorConfig {
     #[configurable(metadata(
         docs::examples = "/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/rg/providers/Microsoft.ContainerService/managedClusters/name"
     ))]
+    #[serde(default = "default_resource_id")]
     pub azure_resource_id: Option<String>,
 
     /// [Alternative host][alt_host] for dedicated Azure regions.
@@ -246,7 +255,7 @@ pub struct AzureMonitorConfig {
 impl Default for AzureMonitorConfig {
     fn default() -> Self {
         Self {
-            azure_resource_id: None,
+            azure_resource_id: default_resource_id(),
             host: default_host(),
             encoding: Default::default(),
             batch: Default::default(),
@@ -305,7 +314,7 @@ impl AzureMonitorConfig {
 impl_generate_config_from_default!(AzureMonitorConfig);
 
 #[async_trait::async_trait]
-#[typetag::serde(name = "azure_monitor_logs")]
+#[typetag::serde(name = "azure_monitor")]
 impl SinkConfig for AzureMonitorConfig {
     async fn build(&self, cx: SinkContext) -> crate::Result<(VectorSink, Healthcheck)> {
         // let endpoint = format!("https://{}", self.host).parse()?;
@@ -353,7 +362,8 @@ impl SinkConfig for AzureMonitorConfig {
             endpoint_uritemplate.replace("<STREAM>", "CONTAINERINSIGHTS_CONTAINERLOGV2");
         println!("gig_endpoint_url: {}", gig_endpoint_url);
 
-        let endpoint: UriSerde = gig_endpoint_url.parse()?;
+        let endpoint = format!("{}", gig_endpoint_url).parse()?;
+
         self.build_inner(cx, endpoint, &ingestion_token).await
     }
 

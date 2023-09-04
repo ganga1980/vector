@@ -1,11 +1,15 @@
 use bytes::Bytes;
 use http::{
     header::{self, HeaderMap},
-    HeaderName, HeaderValue, Request, StatusCode, Uri,
+    HeaderValue, Request, StatusCode, Uri,
 };
+// use http::{
+//     header::{self, HeaderMap},
+//     HeaderName, HeaderValue, Request, StatusCode, Uri,
+// };
 use hyper::Body;
 // use lookup::lookup_v2::OwnedValuePath;
-use once_cell::sync::Lazy;
+// use once_cell::sync::Lazy;
 // use openssl::{base64, hash, pkey, sign};
 // use regex::Regex;
 use std::task::{Context, Poll};
@@ -14,13 +18,12 @@ use tracing::Instrument;
 use crate::{http::HttpClient, sinks::prelude::*};
 
 /// For Azure Monitor, the resource ID of the resource emitting the logs
-static X_MS_AZURE_RESOURCE_HEADER: Lazy<HeaderName> =
-    Lazy::new(|| HeaderName::from_static("azure-monitor-source-resourceId"));
+// static X_MS_AZURE_RESOURCE_HEADER: Lazy<HeaderName> = Lazy::new(|| HeaderName::from_static("azure-monitor-source-resourceId"));
 
-static CONTENT_TYPE_VALUE: Lazy<HeaderValue> = Lazy::new(|| HeaderValue::from_static(CONTENT_TYPE));
+// static CONTENT_TYPE_VALUE: Lazy<HeaderValue> = Lazy::new(|| HeaderValue::from_static(CONTENT_TYPE));
 
 /// JSON content type of logs
-const CONTENT_TYPE: &str = "application/json";
+// const CONTENT_TYPE: &str = "application/json";
 
 /// API version for GIG-LA ingestion
 // const API_VERSION: &str = "2021-11-01-preview";
@@ -88,19 +91,25 @@ impl AzureMonitorService {
         azure_resource_id: Option<&str>,
         token: &str,
     ) -> crate::Result<Self> {
+        println!("AzureMonitorService::new: endpoint: {:?}, azure_resource_id: {:?}", endpoint, azure_resource_id);
+
+        println!("AzureMonitorService::new: token: {:?}", token);
+
         let default_headers = {
             let mut headers = HeaderMap::new();
             if let Some(azure_resource_id) = azure_resource_id {
                 if azure_resource_id.is_empty() {
                     return Err("azure_resource_id can't be an empty string".into());
                 }
-                headers.insert(
-                    X_MS_AZURE_RESOURCE_HEADER.clone(),
+
+                 headers.insert(
+                    "azure-monitor-source-resourceId",
                     HeaderValue::from_str(azure_resource_id)?,
                 );
             }
 
-            headers.insert(header::CONTENT_TYPE, CONTENT_TYPE_VALUE.clone());
+            let content_type = format!("{}", "application/json");
+            headers.insert(header::CONTENT_TYPE, HeaderValue::from_str(&content_type)?);
 
             let bearer_token = format!("Bearer {}", token);
             headers.insert(
@@ -110,6 +119,8 @@ impl AzureMonitorService {
 
             headers
         };
+
+        println!("AzureMonitorService::new:  default_headers: {:?}", default_headers);
 
         Ok(Self {
             client,
