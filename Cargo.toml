@@ -331,6 +331,14 @@ uuid = { version = "1", default-features = false, features = ["serde", "v4"] }
 warp = { version = "0.3.5", default-features = false }
 zstd = { version = "0.12.4", default-features = false }
 arr_macro = { version = "0.2.1" }
+# dependencies for azure monitor
+reqwest = { version = "0.11", features = ["json"] }
+# serde = { version = "1.0", features = ["derive"] }
+# serde_json = "1.0"
+# url = "2.2"
+# tokio = { version = "1", features = ["full"] }
+# chrono = "0.4"
+
 
 # depending on fork for bumped nix dependency
 # https://github.com/heim-rs/heim/pull/360
@@ -637,6 +645,7 @@ sinks-logs = [
   "sinks-axiom",
   "sinks-azure_blob",
   "sinks-azure_monitor_logs",
+  "sinks-azure_monitor",
   "sinks-basic",
   "sinks-blackhole",
   "sinks-chronicle",
@@ -698,6 +707,7 @@ sinks-aws_sns = ["aws-core", "dep:aws-sdk-sns"]
 sinks-axiom = ["sinks-elasticsearch"]
 sinks-azure_blob = ["dep:azure_core", "dep:azure_identity", "dep:azure_storage", "dep:azure_storage_blobs"]
 sinks-azure_monitor_logs = []
+sinks-azure_monitor = []
 sinks-basic = []
 sinks-blackhole = []
 sinks-chronicle = []
