@@ -182,8 +182,10 @@ struct DataItemLAv2 {
     log_source: String,
 }
 
-/// Max number of bytes (1MB max supported in Gig-LA) in request body
-const MAX_BATCH_SIZE: usize = 1 * 1024 * 1024;
+
+/// Max number of bytes (10MB) before compression
+/// Max supported payload size in GIG-LA is 1MB
+const MAX_BATCH_SIZE: usize = 5 * 1024 * 1024;
 
 pub(super) fn default_host() -> String {
     "global.handler.control.monitor.azure.com".into()
