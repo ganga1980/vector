@@ -233,6 +233,10 @@ pub struct AzureMonitorConfig {
     pub encoding: Transformer,
 
     #[configurable(derived)]
+    #[serde(default = "Compression::gzip_default")]
+    pub compression: Compression,
+
+    #[configurable(derived)]
     #[serde(default)]
     pub batch: BatchConfig<RealtimeSizeBasedDefaultBatchSettings>,
 
@@ -258,6 +262,7 @@ impl Default for AzureMonitorConfig {
             azure_resource_id: default_resource_id(),
             host: default_host(),
             encoding: Default::default(),
+            compression: Default::default(),
             batch: Default::default(),
             request: Default::default(),
             tls: None,
@@ -303,6 +308,7 @@ impl AzureMonitorConfig {
         let sink = AzureMonitorSink::new(
             batch_settings,
             self.encoding.clone(),
+            self.compression.clone(),
             service,
             protocol,
         );

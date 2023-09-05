@@ -11,6 +11,7 @@ use super::service::AzureMonitorRequest;
 pub struct AzureMonitorSink<S> {
     batch_settings: BatcherSettings,
     encoding: JsonEncoding,
+    compression: Compression,
     service: S,
     protocol: String,
 }
@@ -25,12 +26,14 @@ where
     pub fn new(
         batch_settings: BatcherSettings,
         transformer: Transformer,
+        compression: Compression,
         service: S,
         protocol: String,
     ) -> Self {
         Self {
             batch_settings,
             encoding: JsonEncoding::new(transformer),
+            compression,
             service,
             protocol,
         }
@@ -43,6 +46,7 @@ where
                 None,
                 AzureMonitorRequestBuilder {
                     encoding: self.encoding,
+                    compression: self.compression,
                 },
             )
             .filter_map(|request| async {
@@ -110,6 +114,7 @@ impl crate::sinks::util::encoding::Encoder<Vec<Event>> for JsonEncoding {
 
 struct AzureMonitorRequestBuilder {
     encoding: JsonEncoding,
+    compression: Compression,
 }
 
 impl RequestBuilder<Vec<Event>> for AzureMonitorRequestBuilder {
@@ -121,7 +126,7 @@ impl RequestBuilder<Vec<Event>> for AzureMonitorRequestBuilder {
     type Error = std::io::Error;
 
     fn compression(&self) -> Compression {
-        Compression::None
+        self.compression
     }
 
     fn encoder(&self) -> &Self::Encoder {
@@ -147,6 +152,7 @@ impl RequestBuilder<Vec<Event>> for AzureMonitorRequestBuilder {
             body: payload.into_payload(),
             finalizers,
             metadata: request_metadata,
+            compression: self.compression
         }
     }
 }

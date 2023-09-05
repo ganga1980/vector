@@ -3,6 +3,7 @@ use http::{
     header::{self, HeaderMap},
     HeaderValue, Request, StatusCode, Uri,
 };
+
 // use http::{
 //     header::{self, HeaderMap},
 //     HeaderName, HeaderValue, Request, StatusCode, Uri,
@@ -15,7 +16,7 @@ use hyper::Body;
 use std::task::{Context, Poll};
 use tracing::Instrument;
 
-use crate::{http::HttpClient, sinks::prelude::*};
+use crate::{http::HttpClient, sinks::util::Compression, sinks::prelude::*};
 
 /// For Azure Monitor, the resource ID of the resource emitting the logs
 // static X_MS_AZURE_RESOURCE_HEADER: Lazy<HeaderName> = Lazy::new(|| HeaderName::from_static("azure-monitor-source-resourceId"));
@@ -34,6 +35,7 @@ pub struct AzureMonitorRequest {
     pub body: Bytes,
     pub finalizers: EventFinalizers,
     pub metadata: RequestMetadata,
+    pub compression: Compression,
 }
 
 impl MetaDescriptive for AzureMonitorRequest {
@@ -107,6 +109,9 @@ impl AzureMonitorService {
                     HeaderValue::from_str(azure_resource_id)?,
                 );
             }
+
+            let content_encoding = format!("{}", "gzip");
+            headers.insert(header::CONTENT_ENCODING, HeaderValue::from_str(&content_encoding)?);
 
             let content_type = format!("{}", "application/json");
             headers.insert(header::CONTENT_TYPE, HeaderValue::from_str(&content_type)?);
